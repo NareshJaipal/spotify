@@ -15,7 +15,7 @@ const ListItem: React.FC<ListItemProps> = ({ image, name, href }) => {
   const router = useRouter();
 
   const handleOnClick = () => {
-    // router.push(href);
+    router.push(href);
   };
 
   return (

@@ -60,7 +60,7 @@ const UploadModal = () => {
 
       if (songError) {
         setIsLoading(false);
-        console.log(songError);
+        console.error(songError);
         return toast.error("Failed to upload song!");
       }
 
@@ -74,7 +74,7 @@ const UploadModal = () => {
 
       if (imageError) {
         setIsLoading(false);
-        console.log(imageError);
+        console.error(imageError);
         return toast.error("Failed to upload image!");
       }
 
@@ -96,6 +96,8 @@ const UploadModal = () => {
       router.refresh();
       setIsLoading(false);
       toast.success("Song uploaded successfully");
+      reset();
+      uploadModal.onClose();
       //
     } catch (error) {
       toast.error("Something went wrong!");

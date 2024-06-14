@@ -7,6 +7,7 @@ import UserProvider from "@/providers/userProvider";
 import ModalProvider from "@/providers/ModalProvider";
 import ToasterProvider from "@/providers/ToasterProvider";
 import getSongsByUserId from "@/actions/getSongsById";
+import Player from "@/components/Player";
 
 const font = Figtree({ subsets: ["latin"] });
 
@@ -15,7 +16,7 @@ export const metadata: Metadata = {
   description: "Listen to music!",
 };
 
-const revalidate = 0;
+export const revalidate = 0;
 
 export default async function RootLayout({
   children,
@@ -31,6 +32,7 @@ export default async function RootLayout({
           <UserProvider>
             <ModalProvider />
             <SideBar songs={userSongs}>{children}</SideBar>
+            <Player />
           </UserProvider>
         </SupabaseProvider>
       </body>
