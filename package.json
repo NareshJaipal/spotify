@@ -27,6 +27,7 @@
     "supabase": "^1.172.2",
     "tailwind-merge": "^2.3.0",
     "uniqid": "^5.4.0",
+    "use-sound": "^4.0.1",
     "zustand": "^4.5.2"
   },
   "devDependencies": {
