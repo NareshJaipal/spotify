@@ -43,7 +43,7 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
   useEffect(() => {
     if (sound) {
       sound.on("load", () => {
-        play();
+        sound?.play();
       });
 
       sound?.play();
