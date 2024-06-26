@@ -3,12 +3,12 @@
 import Box from "@/components/Box";
 import Loader from "@/components/Loader";
 
-const Error = () => {
+const Loading = () => {
   return (
     <Box className="h-full flex items-center justify-center">
-      <div className="text-neutral-400">Something went wrong.</div>
+      <Loader />
     </Box>
   );
 };
 
-export default Error;
+export default Loading;

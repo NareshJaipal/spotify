@@ -9,17 +9,20 @@ import useSound from "use-sound";
 import usePlayer from "@/hooks/usePlayer";
 import LikeButton from "./LikeButton";
 import MediaItem from "./MediaItem";
-import { Song } from "@/types";
 import Slider from "./Slider";
+import useOnPlay from "@/hooks/useOnPlay";
 
 interface PlayerContentProps {
-  song: Song;
+  song: any;
   songUrl: string;
 }
 
 const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
   const player = usePlayer();
-  const [volume, setVolume] = useState(1);
+  const [volume, setVolume] = useState(0.75);
+  const [previousVolume, setPreviousVolume] = useState(volume);
+  const [progressTime, setProgressTime] = useState(0);
+
   const [isPlaying, setIsPlaying] = useState(false);
 
   const Icon = isPlaying ? BsPauseFill : BsPlayFill;
@@ -28,21 +31,35 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
   const [play, { pause, sound }] = useSound(songUrl, {
     volume,
     onplay: () => setIsPlaying(true),
-    onended: () => {
+    onend: () => {
       setIsPlaying(false);
       onPlayNext();
     },
     onpause: () => setIsPlaying(false),
     format: ["mp3"],
+    preload: true,
   });
 
   useEffect(() => {
-    sound?.play();
+    if (sound) {
+      sound.on("load", () => {
+        play();
+      });
 
-    return () => {
-      sound?.unload();
-    };
-  }, [sound]);
+      sound?.play();
+
+      const interval = setInterval(() => {
+        if (typeof sound?.seek() === "number") {
+          setProgressTime(sound.seek());
+        }
+      }, 1000);
+
+      return () => {
+        clearInterval(interval);
+        sound?.unload();
+      };
+    }
+  }, [sound, play]);
 
   const handlePlay = () => {
     if (!isPlaying) {
@@ -53,86 +70,136 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
   };
 
   const onPlayPrevious = () => {
-    if (player.ids.length === 0) {
+    if (player.songs.length === 0) {
       return;
     }
 
-    const currentIndex = player.ids.findIndex((id) => id === player.activeId);
-    const previousSong = player.ids[currentIndex - 1];
+    const currentIndex = player.songs.findIndex(
+      (song) => song === player.activeSong
+    );
+    const previousSong = player.songs[currentIndex - 1];
 
     if (!previousSong) {
-      return player.setId(player.ids[player.ids.length - 1]);
+      return player.setItem(player.songs[player.songs.length - 1]);
     }
 
-    player.setId(previousSong);
+    player.setItem(previousSong);
   };
 
   const onPlayNext = () => {
-    if (player.ids.length === 0) {
+    console.log("Next Song");
+    if (player.songs.length === 0) {
       return;
     }
 
-    const currentIndex = player.ids.findIndex((id) => id === player.activeId);
-    const nextSong = player.ids[currentIndex + 1];
+    const currentIndex = player.songs.findIndex(
+      (id) => id === player.activeSong
+    );
+    const nextSong = player.songs[currentIndex + 1];
 
     if (!nextSong) {
-      return player.setId(player.ids[0]);
+      return player.setItem(player.songs[0]);
     }
 
-    player.setId(nextSong);
+    player.setItem(nextSong);
   };
 
   const toggleMute = () => {
     if (volume === 0) {
-      setVolume(1);
+      setVolume(previousVolume);
     } else {
+      setPreviousVolume(volume);
       setVolume(0);
     }
   };
 
+  const handleProgressChange = (value: number) => {
+    setProgressTime(value);
+    if (sound) {
+      sound.seek(value);
+    }
+  };
+
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 h-full">
-      <div className="flex w-full items-start">
-        <div className="flex items-center gap-x-4">
-          <MediaItem data={song} />
-          <LikeButton songId={song.id} />
+    <div className="grid h-full grid-cols-2 md:grid-cols-3">
+      <div className="flex w-full items-start md:w-[250px]">
+        <div className="flex w-full items-center gap-x-2">
+          <div className="w-[calc(100%-30px)]">
+            <MediaItem song={song} />
+          </div>
+          <LikeButton song={song} />
         </div>
       </div>
-      <div className="flex md:hidden col-auto w-full justify-end items-center">
+
+      <div className="col-auto flex w-full items-center justify-end md:hidden">
         <div
           onClick={handlePlay}
-          className="h-10 w-10 flex items-center justify-center rounded-full bg-white p-1 cursor-pointer"
+          className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-white p-1"
         >
           <Icon size={28} className="text-black" />
         </div>
       </div>
-      <div className="hidden md:flex items-center justify-center h-full w-full max-w-[722px] gap-x-6">
-        <AiFillStepBackward
-          onClick={onPlayPrevious}
-          size={30}
-          className="text-neutral-400 hover:text-white cursor-pointer transition"
-        />
 
-        <div
-          onClick={handlePlay}
-          className="flex items-center justify-center h-10 w-10 rounded-full bg-white p-1 cursor-pointer"
-        >
-          <Icon size={30} className="text-black" />
+      <div className="flex w-full max-w-[722px] flex-col items-center justify-center">
+        <div className="hidden w-full items-center justify-center gap-x-6 md:flex">
+          <AiFillStepBackward
+            onClick={onPlayPrevious}
+            size={25}
+            className="cursor-pointer text-neutral-400 transition hover:text-white"
+          />
+
+          <div
+            onClick={handlePlay}
+            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-white p-1"
+          >
+            <Icon size={25} className="text-black" />
+          </div>
+          <AiFillStepForward
+            onClick={onPlayNext}
+            size={25}
+            className="cursor-pointer text-neutral-400 transition hover:text-white"
+          />
         </div>
-        <AiFillStepForward
-          onClick={onPlayNext}
-          size={30}
-          className="text-neutral-400 hover:text-white cursor-pointer transition"
-        />
+
+        <div className="flex w-full items-center gap-x-2">
+          <p className="w-[50px] whitespace-nowrap text-right text-sm text-neutral-400">
+            {Math.floor(progressTime / 60)}:
+            {Math.floor(progressTime % 60) < 10
+              ? `0${Math.floor(progressTime % 60)}`
+              : Math.floor(progressTime % 60)}
+          </p>
+
+          <Slider
+            value={progressTime}
+            max={sound?.duration() || 0}
+            onChange={handleProgressChange}
+          />
+
+          <p className="w-[50px] whitespace-nowrap text-sm text-neutral-400">
+            {Math.floor(sound?.duration() / 60 || 0)}:
+            {Math.floor(sound?.duration() % 60 || 0) < 10
+              ? `0${Math.floor(sound?.duration() % 60 || 0)}`
+              : Math.floor(sound?.duration() % 60 || 0)}
+          </p>
+        </div>
       </div>
-      <div className="hidden md:flex w-full justify-end pr-2">
-        <div className="flex items-center gap-x-2 w-[120px]">
+
+      <div className="hidden w-full justify-end pr-2 md:flex">
+        <div className="flex w-[200px] items-center gap-x-2">
           <VolumeIcon
             onClick={toggleMute}
             size={34}
-            className="cursor-pointer"
+            className="w-[50px] cursor-pointer"
           />
-          <Slider value={volume} onChange={(value) => setVolume(value)} />
+
+          <p className="w-[85px] cursor-pointer text-center text-neutral-500">
+            {volume * 100} %
+          </p>
+          <Slider
+            value={volume}
+            max={1}
+            onChange={(value) => setVolume(value)}
+          />
         </div>
       </div>
     </div>

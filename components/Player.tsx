@@ -1,25 +1,25 @@
-"use client";
+"use client"
 
-import useGetSongById from "@/hooks/useGetSongById";
-import useLoadSongUrl from "@/hooks/useLoadSongUrl";
-import usePlayer from "@/hooks/usePlayer";
-import PlayerContent from "./PlayerContent";
+import useLoadSongUrl from "@/hooks/useLoadSongUrl"
+import usePlayer from "@/hooks/usePlayer"
+import PlayerContent from "./PlayerContent"
 
 const Player = () => {
-  const player = usePlayer();
-  const { song } = useGetSongById(player.activeId);
+  const player = usePlayer()
 
-  const songUrl = useLoadSongUrl(song!);
+  const song = player?.activeSong
 
-  if (!song || !songUrl || !player.activeId) {
-    return null;
+  const songUrl = song?.songUrl || song?.preview || useLoadSongUrl(song!)
+
+  if (!song || !songUrl) {
+    return null
   }
 
   return (
-    <div className="fixed bottom-0 bg-black w-full py-2 h-[80px] px-4">
+    <div className="fixed bottom-0 h-[80px] w-full bg-transparent px-4 py-2">
       <PlayerContent key={songUrl} song={song} songUrl={songUrl} />
     </div>
-  );
-};
+  )
+}
 
-export default Player;
+export default Player

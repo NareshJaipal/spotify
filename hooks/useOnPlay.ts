@@ -3,18 +3,18 @@ import useAuthModal from "./useAuthModal";
 import usePlayer from "./usePlayer";
 import { useUser } from "./useUser";
 
-const useOnPlay = (song: Song[]) => {
+const useOnPlay = (song: any[]) => {
   const player = usePlayer();
   const authModal = useAuthModal();
   const { user } = useUser();
 
-  const onPlay = (id: string) => {
+  const onPlay = (item: any) => {
     if (!user) {
       return authModal.onOpen();
     }
 
-    player.setId(id);
-    player.setIds(song.map((item) => item.id));
+    player.setItem(item);
+    player.setItems(song.map((item) => item));
   };
 
   return onPlay;

@@ -26,7 +26,7 @@ export default async function RootLayout({
   const userSongs = await getSongsByUserId();
   return (
     <html lang="en">
-      <body className={font.className}>
+      <body className={`${font.className} bg-gradient-custom`}>
         <ToasterProvider />
         <SupabaseProvider>
           <UserProvider>

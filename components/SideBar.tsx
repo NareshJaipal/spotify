@@ -6,8 +6,8 @@ import { twMerge } from "tailwind-merge";
 import { BiSearch } from "react-icons/bi";
 import { HiHome } from "react-icons/hi";
 
-import SideBarItem from "./SideBarItem";
 import usePlayer from "@/hooks/usePlayer";
+import SideBarItem from "./SideBarItem";
 import Library from "./Library";
 import { Song } from "@/types";
 import Box from "./Box";
@@ -42,10 +42,10 @@ const SideBar: React.FC<SideBarProps> = ({ children, songs }) => {
     <div
       className={twMerge(
         "flex h-full",
-        player.activeId && "h-[calc(100%-80px)]"
+        player.activeSong && "h-[calc(100%-80px)]"
       )}
     >
-      <div className="hidden md:flex flex-col gap-y-2 bg-black h-full w-[300px] p-2">
+      <div className="hidden md:flex flex-col gap-y-2 bg-transparent h-full w-[300px] p-2">
         <Box>
           <div className="flex flex-col gap-y-4 px-5 py-4">
             {routes.map((item) => {

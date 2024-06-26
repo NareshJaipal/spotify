@@ -1,7 +1,6 @@
 "use client";
 
 import Box from "@/components/Box";
-import Loader from "@/components/Loader";
 
 const Error = () => {
   return (

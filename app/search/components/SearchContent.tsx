@@ -3,16 +3,27 @@
 import LikeButton from "@/components/LikeButton";
 import MediaItem from "@/components/MediaItem";
 import useOnPlay from "@/hooks/useOnPlay";
-import { Song } from "@/types";
+import { getMusic } from "@/libs/getMusic";
+import { useEffect, useState } from "react";
 
 interface SearchContentProps {
-  songs: Song[];
+  query: string;
 }
 
-const SearchContent: React.FC<SearchContentProps> = ({ songs }) => {
-  const onPlay = useOnPlay(songs);
+const SearchContent: React.FC<SearchContentProps> = ({ query }) => {
+  const [songs, setSongs] = useState<any[]>();
+  const onPlay = useOnPlay(songs!);
 
-  if (songs.length === 0) {
+  const fetchData = async () => {
+    const songsData = await getMusic(query);
+    setSongs(songsData.data);
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [query]);
+
+  if (songs?.length === 0) {
     return (
       <div className="flex flex-col gap-y-2 w-full px-6 text-neutral-400">
         No songs found.
@@ -22,13 +33,13 @@ const SearchContent: React.FC<SearchContentProps> = ({ songs }) => {
 
   return (
     <div className="flex flex-col w-full gap-y-2 px-6">
-      {songs.map((item) => {
+      {songs?.map((item) => {
         return (
           <div key={item.id} className="flex items-center gap-x-4 w-full">
             <div className="flex-1">
-              <MediaItem onClick={(id: string) => onPlay(id)} data={item} />
+              <MediaItem onClick={(item) => onPlay(item)} data={item} />
             </div>
-            <LikeButton songId={item.id} />
+            <LikeButton song={item} />
           </div>
         );
       })}

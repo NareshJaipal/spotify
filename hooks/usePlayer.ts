@@ -1,19 +1,19 @@
 import { create } from "zustand";
 
 interface PlayerStore {
-  ids: string[];
-  activeId?: string;
-  setId: (id: string) => void;
-  setIds: (ids: string[]) => void;
+  songs: any[];
+  activeSong?: any;
+  setItem: (song: any) => void;
+  setItems: (songs: any[]) => void;
   reset: () => void;
 }
 
 const usePlayer = create<PlayerStore>((set) => ({
-  ids: [],
-  activeId: undefined,
-  setId: (id: string) => set({ activeId: id }),
-  setIds: (ids: string[]) => set({ ids: ids }),
-  reset: () => set({ activeId: undefined, ids: [] }),
+  songs: [],
+  activeSong: undefined,
+  setItem: (song: any) => set({ activeSong: song }),
+  setItems: (songs: any[]) => set({ songs: songs }),
+  reset: () => set({ activeSong: undefined, songs: [] }),
 }));
 
 export default usePlayer;

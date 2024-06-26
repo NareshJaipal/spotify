@@ -1,17 +1,18 @@
-import getLikedSongs from "@/actions/getLikedSongs";
-import Header from "@/components/Header";
-import Image from "next/image";
-import LikedContent from "./components/LikedContent";
+import getLikedSongs from "@/actions/getLikedSongs"
+import Header from "@/components/Header"
+import Image from "next/image"
+import LikedContent from "./components/LikedContent"
 
-export const revalidate = 0;
+export const revalidate = 0
 
 const Liked = async () => {
-  const songs = await getLikedSongs();
+  const songs = await getLikedSongs()
+
   return (
-    <div className="bg-neutral-900 h-full w-full rounded-lg overflow-hidden overflow-y-auto">
+    <div className="h-full w-full overflow-hidden overflow-y-auto rounded-lg bg-neutral-900">
       <Header>
         <div className="mt-20">
-          <div className="flex flex-col md:flex-row items-center gap-x-5">
+          <div className="flex flex-col items-center gap-x-5 md:flex-row">
             <div className="relative h-32 w-32 lg:h-44 lg:w-44">
               <Image
                 fill
@@ -20,10 +21,10 @@ const Liked = async () => {
                 alt="Image"
               />
             </div>
-            <div className="flex flex-col gap-y-2 mt-4 md:mt-0">
-              <p className="hidden md:block font-semibold text-sm">Playlist</p>
-              <h1 className="text-white text-4xl sm:text-5xl lg:text-7xl font-bold">
-                Liked Songs
+            <div className="mt-4 flex flex-col gap-y-2 md:mt-0">
+              <p className="hidden text-sm font-semibold md:block">Playlist</p>
+              <h1 className="text-3xl font-bold text-white sm:text-4xl lg:text-6xl">
+                Favorite Songs
               </h1>
             </div>
           </div>
@@ -31,7 +32,7 @@ const Liked = async () => {
       </Header>
       <LikedContent songs={songs} />
     </div>
-  );
-};
+  )
+}
 
-export default Liked;
+export default Liked
