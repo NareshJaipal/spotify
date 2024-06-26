@@ -14,16 +14,18 @@ const SearchContent: React.FC<SearchContentProps> = ({ query }) => {
   const [songs, setSongs] = useState<any[]>();
   const onPlay = useOnPlay(songs!);
 
-  const fetchData = async () => {
-    const songsData = await getMusic(query);
-    setSongs(songsData.data);
-  };
-
   useEffect(() => {
-    fetchData();
+    if (query) {
+      const fetchData = async () => {
+        const songsData = await getMusic(query);
+        setSongs(songsData.data);
+      };
+
+      fetchData();
+    }
   }, [query]);
 
-  if (songs?.length === 0) {
+  if (songs?.length === 0 || query === "") {
     return (
       <div className="flex flex-col gap-y-2 w-full px-6 text-neutral-400">
         No songs found.
@@ -37,7 +39,7 @@ const SearchContent: React.FC<SearchContentProps> = ({ query }) => {
         return (
           <div key={item.id} className="flex items-center gap-x-4 w-full">
             <div className="flex-1">
-              <MediaItem onClick={(item) => onPlay(item)} data={item} />
+              <MediaItem onClick={(item) => onPlay(item)} song={item} />
             </div>
             <LikeButton song={item} />
           </div>

@@ -10,7 +10,6 @@ import usePlayer from "@/hooks/usePlayer";
 import LikeButton from "./LikeButton";
 import MediaItem from "./MediaItem";
 import Slider from "./Slider";
-import useOnPlay from "@/hooks/useOnPlay";
 
 interface PlayerContentProps {
   song: any;

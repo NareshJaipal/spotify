@@ -1,33 +1,32 @@
-"use client"
+"use client";
 
-import useLoadImage from "@/hooks/useLoadImage"
-import usePlayer from "@/hooks/usePlayer"
-import Image from "next/image"
+import useLoadImage from "@/hooks/useLoadImage";
+import usePlayer from "@/hooks/usePlayer";
+import Image from "next/image";
 
 interface MedaiItemProps {
-  song: any
-  onClick?: (song: any) => void
+  song: any;
+  onClick?: (song: any) => void;
 }
 
 const MediaItem: React.FC<MedaiItemProps> = ({ onClick, song }) => {
-  const player = usePlayer()
+  const player = usePlayer();
 
-  const name = song?.title_short || song?.title || "Song name..."
-  const artist = song?.artist?.name || song?.artist || song?.author || "Artist"
+  const name = song?.title_short || song?.title || "Song name...";
+  const artist = song?.artist?.name || song?.artist || song?.author || "Artist";
 
-  const imagePath =
-    song?.imgUrl ||
-    song?.album?.cover_medium ||
-    song?.album?.cover_big ||
-    useLoadImage(song)
+  const loadedImagePath = useLoadImage(song);
+  const imagePath = loadedImagePath
+    ? loadedImagePath
+    : song?.imgUrl || song?.album?.cover_medium || song?.album?.cover_big;
 
   const handleClick = () => {
     if (onClick) {
-      return onClick(song)
+      return onClick(song);
     }
 
-    return player.setItem(song)
-  }
+    return player.setItem(song);
+  };
 
   return (
     <div
@@ -42,7 +41,7 @@ const MediaItem: React.FC<MedaiItemProps> = ({ onClick, song }) => {
         <p className="truncate text-sm text-neutral-400">{artist}</p>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default MediaItem
+export default MediaItem;
