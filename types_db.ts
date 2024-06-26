@@ -37,16 +37,28 @@ export type Database = {
           created_at: string;
           song_id: number;
           user_id: string;
+          title: string;
+          artist: string;
+          imgUrl: string;
+          songUrl: string;
         };
         Insert: {
           created_at?: string;
           song_id: number;
           user_id: string;
+          title: string;
+          artist: string;
+          imgUrl: string;
+          songUrl: string;
         };
         Update: {
           created_at?: string;
           song_id?: number;
           user_id?: string;
+          title?: string;
+          artist?: string;
+          imgUrl?: string;
+          songUrl?: string;
         };
         Relationships: [
           {
