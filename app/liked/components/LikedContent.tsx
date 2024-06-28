@@ -1,6 +1,5 @@
 "use client";
 
-import LikeButton from "@/components/LikeButton";
 import MediaItem from "@/components/MediaItem";
 import useOnPlay from "@/hooks/useOnPlay";
 import { useUser } from "@/hooks/useUser";
@@ -39,10 +38,7 @@ const LikedContent: React.FC<LikedContentProps> = ({ songs }) => {
             key={item.song_id || item.id}
             className="flex w-full items-center gap-x-4"
           >
-            <div className="w-[90%] flex-1">
-              <MediaItem onClick={(item) => onPlay(item)} song={item} />
-            </div>
-            <LikeButton song={item} />
+            <MediaItem onClick={(item) => onPlay(item)} song={item} />
           </div>
         );
       })}

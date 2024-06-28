@@ -37,11 +37,11 @@ const SearchContent: React.FC<SearchContentProps> = ({ query }) => {
     <div className="flex flex-col w-full gap-y-2 px-6">
       {songs?.map((item) => {
         return (
-          <div key={item.id} className="flex items-center gap-x-4 w-full">
-            <div className="flex-1">
-              <MediaItem onClick={(item) => onPlay(item)} song={item} />
-            </div>
-            <LikeButton song={item} />
+          <div
+            key={item.id}
+            className="flex items-center justify-between gap-x-4 w-full"
+          >
+            <MediaItem onClick={(item) => onPlay(item)} song={item} />
           </div>
         );
       })}

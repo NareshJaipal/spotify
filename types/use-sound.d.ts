@@ -1,9 +1,12 @@
 declare module "use-sound" {
   type Options = {
+    format?: string;
     volume?: number;
+    html5?: boolean;
     onplay?: () => void;
     onend?: () => void;
     onpause?: () => void;
+    onload?: () => void;
     format?: string[];
     preload?: boolean;
   };

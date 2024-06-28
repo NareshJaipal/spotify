@@ -7,7 +7,6 @@ import { useEffect, useState } from "react";
 import useSound from "use-sound";
 
 import usePlayer from "@/hooks/usePlayer";
-import LikeButton from "./LikeButton";
 import MediaItem from "./MediaItem";
 import Slider from "./Slider";
 
@@ -28,15 +27,20 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
   const VolumeIcon = volume === 0 ? HiSpeakerXMark : HiSpeakerWave;
 
   const [play, { pause, sound }] = useSound(songUrl, {
+    format: "mp3",
+    html5: true,
     volume,
-    onplay: () => setIsPlaying(true),
+    onload: () => {},
+    onplay: () => {
+      setIsPlaying(true);
+    },
+    onpause: () => {
+      setIsPlaying(false);
+    },
     onend: () => {
       setIsPlaying(false);
       onPlayNext();
     },
-    onpause: () => setIsPlaying(false),
-    format: ["mp3"],
-    preload: true,
   });
 
   useEffect(() => {
@@ -45,7 +49,7 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
         sound?.play();
       });
 
-      sound?.play();
+      sound.play();
 
       const interval = setInterval(() => {
         if (typeof sound?.seek() === "number") {
@@ -86,7 +90,6 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
   };
 
   const onPlayNext = () => {
-    console.log("Next Song");
     if (player.songs.length === 0) {
       return;
     }
@@ -120,85 +123,105 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
   };
 
   return (
-    <div className="grid h-full grid-cols-2 md:grid-cols-3">
-      <div className="flex w-full items-start md:w-[250px]">
-        <div className="flex w-full items-center gap-x-2">
-          <div className="w-[calc(100%-30px)]">
+    <div className="h-full overflow-hidden">
+      <div className="md:hidden flex w-full items-center gap-x-2 h-5">
+        <p className="w-[50px] whitespace-nowrap text-right text-sm text-neutral-400">
+          {Math.floor(progressTime / 60)}:
+          {Math.floor(progressTime % 60) < 10
+            ? `0${Math.floor(progressTime % 60)}`
+            : Math.floor(progressTime % 60)}
+        </p>
+
+        <Slider
+          value={progressTime}
+          max={sound?.duration() || 0}
+          onChange={handleProgressChange}
+        />
+
+        <p className="w-[50px] whitespace-nowrap text-sm text-neutral-400">
+          {Math.floor(sound?.duration() / 60 || 0)}:
+          {Math.floor(sound?.duration() % 60 || 0) < 10
+            ? `0${Math.floor(sound?.duration() % 60 || 0)}`
+            : Math.floor(sound?.duration() % 60 || 0)}
+        </p>
+      </div>
+      <div className="grid h-full grid-cols-2 md:grid-cols-3">
+        <div className="flex w-full items-start md:w-[250px]">
+          <div className="flex w-full items-center gap-x-2">
             <MediaItem song={song} />
           </div>
-          <LikeButton song={song} />
         </div>
-      </div>
 
-      <div className="col-auto flex w-full items-center justify-end md:hidden">
-        <div
-          onClick={handlePlay}
-          className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-white p-1"
-        >
-          <Icon size={28} className="text-black" />
-        </div>
-      </div>
-
-      <div className="flex w-full max-w-[722px] flex-col items-center justify-center">
-        <div className="hidden w-full items-center justify-center gap-x-6 md:flex">
-          <AiFillStepBackward
-            onClick={onPlayPrevious}
-            size={25}
-            className="cursor-pointer text-neutral-400 transition hover:text-white"
-          />
-
+        <div className="col-auto flex w-full items-center justify-end md:hidden">
           <div
             onClick={handlePlay}
-            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-white p-1"
+            className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-white p-1"
           >
-            <Icon size={25} className="text-black" />
+            <Icon size={28} className="text-black" />
           </div>
-          <AiFillStepForward
-            onClick={onPlayNext}
-            size={25}
-            className="cursor-pointer text-neutral-400 transition hover:text-white"
-          />
         </div>
 
-        <div className="flex w-full items-center gap-x-2">
-          <p className="w-[50px] whitespace-nowrap text-right text-sm text-neutral-400">
-            {Math.floor(progressTime / 60)}:
-            {Math.floor(progressTime % 60) < 10
-              ? `0${Math.floor(progressTime % 60)}`
-              : Math.floor(progressTime % 60)}
-          </p>
+        <div className="hidden md:flex w-full max-w-[722px] flex-col items-center justify-center">
+          <div className="w-full items-center justify-center gap-x-6 md:flex">
+            <AiFillStepBackward
+              onClick={onPlayPrevious}
+              size={25}
+              className="cursor-pointer text-neutral-400 transition hover:text-white"
+            />
 
-          <Slider
-            value={progressTime}
-            max={sound?.duration() || 0}
-            onChange={handleProgressChange}
-          />
+            <div
+              onClick={handlePlay}
+              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-white p-1"
+            >
+              <Icon size={25} className="text-black" />
+            </div>
+            <AiFillStepForward
+              onClick={onPlayNext}
+              size={25}
+              className="cursor-pointer text-neutral-400 transition hover:text-white"
+            />
+          </div>
 
-          <p className="w-[50px] whitespace-nowrap text-sm text-neutral-400">
-            {Math.floor(sound?.duration() / 60 || 0)}:
-            {Math.floor(sound?.duration() % 60 || 0) < 10
-              ? `0${Math.floor(sound?.duration() % 60 || 0)}`
-              : Math.floor(sound?.duration() % 60 || 0)}
-          </p>
+          <div className="flex w-full items-center gap-x-2">
+            <p className="w-[50px] whitespace-nowrap text-right text-sm text-neutral-400">
+              {Math.floor(progressTime / 60)}:
+              {Math.floor(progressTime % 60) < 10
+                ? `0${Math.floor(progressTime % 60)}`
+                : Math.floor(progressTime % 60)}
+            </p>
+
+            <Slider
+              value={progressTime}
+              max={sound?.duration() || 0}
+              onChange={handleProgressChange}
+            />
+
+            <p className="w-[50px] whitespace-nowrap text-sm text-neutral-400">
+              {Math.floor(sound?.duration() / 60 || 0)}:
+              {Math.floor(sound?.duration() % 60 || 0) < 10
+                ? `0${Math.floor(sound?.duration() % 60 || 0)}`
+                : Math.floor(sound?.duration() % 60 || 0)}
+            </p>
+          </div>
         </div>
-      </div>
 
-      <div className="hidden w-full justify-end pr-2 md:flex">
-        <div className="flex w-[200px] items-center gap-x-2">
-          <VolumeIcon
-            onClick={toggleMute}
-            size={34}
-            className="w-[50px] cursor-pointer"
-          />
+        <div className="hidden md:flex w-full justify-end pr-2">
+          <div className="md:flex w-[200px] items-center gap-x-2">
+            <VolumeIcon
+              onClick={toggleMute}
+              size={34}
+              className="w-[50px] cursor-pointer"
+            />
 
-          <p className="w-[85px] cursor-pointer text-center text-neutral-500">
-            {volume * 100} %
-          </p>
-          <Slider
-            value={volume}
-            max={1}
-            onChange={(value) => setVolume(value)}
-          />
+            <p className="w-[85px] cursor-pointer text-center text-neutral-500">
+              {volume * 100} %
+            </p>
+            <Slider
+              value={volume}
+              max={1}
+              onChange={(value) => setVolume(value)}
+            />
+          </div>
         </div>
       </div>
     </div>

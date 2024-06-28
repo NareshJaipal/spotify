@@ -3,6 +3,7 @@
 import useLoadImage from "@/hooks/useLoadImage";
 import usePlayer from "@/hooks/usePlayer";
 import Image from "next/image";
+import LikeButton from "./LikeButton";
 
 interface MedaiItemProps {
   song: any;
@@ -36,10 +37,11 @@ const MediaItem: React.FC<MedaiItemProps> = ({ onClick, song }) => {
       <div className="relative min-h-[48px] min-w-[48px] overflow-hidden rounded-md">
         <Image fill alt="Media Item" src={imagePath || "/images/liked.png"} />
       </div>
-      <div className="flex flex-col gap-y-1 overflow-hidden">
+      <div className="flex w-[calc(100%-90px)] flex-col gap-y-1 overflow-hidden">
         <p className="truncate text-white">{name}</p>
         <p className="truncate text-sm text-neutral-400">{artist}</p>
       </div>
+      <LikeButton song={song} />
     </div>
   );
 };

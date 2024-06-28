@@ -1,32 +1,30 @@
-import { TbPlaylist } from "react-icons/tb"
-import { AiOutlinePlus } from "react-icons/ai"
-import useAuthModal from "@/hooks/useAuthModal"
-import { useUser } from "@/hooks/useUser"
-import useUploadModal from "@/hooks/useUploadModal"
-import { Song } from "@/types"
-import MediaItem from "./MediaItem"
-import useOnPlay from "@/hooks/useOnPlay"
+import { TbPlaylist } from "react-icons/tb";
+import { AiOutlinePlus } from "react-icons/ai";
+import useAuthModal from "@/hooks/useAuthModal";
+import { useUser } from "@/hooks/useUser";
+import useUploadModal from "@/hooks/useUploadModal";
+import { Song } from "@/types";
+import MediaItem from "./MediaItem";
+import useOnPlay from "@/hooks/useOnPlay";
 
 interface LibraryProps {
-  songs: Song[]
+  songs: Song[];
 }
 
 const Libaray: React.FC<LibraryProps> = ({ songs }) => {
-  const authModal = useAuthModal()
-  const { user } = useUser()
-  const uploadModal = useUploadModal()
+  const authModal = useAuthModal();
+  const { user } = useUser();
+  const uploadModal = useUploadModal();
 
-  const onPlay = useOnPlay(songs)
+  const onPlay = useOnPlay(songs);
 
   const handleUploadSong = () => {
     if (!user) {
-      return authModal.onOpen()
+      return authModal.onOpen();
     }
 
-    // Todo: Check for subscription
-
-    return uploadModal.onOpen()
-  }
+    return uploadModal.onOpen();
+  };
   return (
     <div className="flex flex-col">
       <div className="flex items-center justify-between px-5 py-4">
@@ -50,7 +48,7 @@ const Libaray: React.FC<LibraryProps> = ({ songs }) => {
         ))}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Libaray
+export default Libaray;
