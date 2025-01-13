@@ -3,83 +3,164 @@
 import { AiFillStepBackward, AiFillStepForward } from "react-icons/ai";
 import { HiSpeakerWave, HiSpeakerXMark } from "react-icons/hi2";
 import { BsPauseFill, BsPlayFill } from "react-icons/bs";
-import { useEffect, useState } from "react";
-import useSound from "use-sound";
-
+import { useEffect, useState, useRef } from "react";
 import usePlayer from "@/hooks/usePlayer";
 import MediaItem from "./MediaItem";
 import Slider from "./Slider";
+import { FiLoader } from "react-icons/fi";
 
 interface PlayerContentProps {
   song: any;
-  songUrl: string;
+  videoId: string;
 }
 
-const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
+declare global {
+  interface Window {
+    YT: any;
+    onYouTubeIframeAPIReady: () => void;
+  }
+}
+
+const PlayerContent: React.FC<PlayerContentProps> = ({ song, videoId }) => {
   const player = usePlayer();
-  const [volume, setVolume] = useState(0.75);
+  const [volume, setVolume] = useState(75);
   const [previousVolume, setPreviousVolume] = useState(volume);
   const [progressTime, setProgressTime] = useState(0);
-
+  const [duration, setDuration] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [bufferedProgress, setBufferedProgress] = useState(0);
+
+  const [playerReadyRef, setPlayerReadyRef] = useState(false);
+  const youtubePlayerRef = useRef<any>(null);
 
   const Icon = isPlaying ? BsPauseFill : BsPlayFill;
   const VolumeIcon = volume === 0 ? HiSpeakerXMark : HiSpeakerWave;
 
-  const [play, { pause, sound }] = useSound(songUrl, {
-    format: "mp3",
-    html5: true,
-    volume,
-    onload: () => {},
-    onplay: () => {
-      setIsPlaying(true);
-    },
-    onpause: () => {
-      setIsPlaying(false);
-    },
-    onend: () => {
-      setIsPlaying(false);
-      onPlayNext();
-    },
-  });
+  useEffect(() => {
+    const loadYouTubeIframeAPI = () => {
+      if (!window.YT) {
+        const tag = document.createElement("script");
+        tag.src = "https://www.youtube.com/iframe_api";
+        const firstScriptTag = document.getElementsByTagName("script")[0];
+        firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
+
+        window.onYouTubeIframeAPIReady = initializePlayer;
+      } else {
+        initializePlayer();
+      }
+    };
+
+    loadYouTubeIframeAPI();
+  }, []);
 
   useEffect(() => {
-    if (sound) {
-      sound.on("load", () => {
-        sound?.play();
-      });
-
-      sound.play();
-
-      const interval = setInterval(() => {
-        if (typeof sound?.seek() === "number") {
-          setProgressTime(sound.seek());
-        }
-      }, 1000);
-
-      return () => {
-        clearInterval(interval);
-        sound?.unload();
-      };
+    if (playerReadyRef) {
+      setIsLoading(true);
+      initializePlayer();
     }
-  }, [sound, play]);
+  }, [videoId]);
+
+  const initializePlayer = () => {
+    if (!window.YT) return;
+    if (youtubePlayerRef.current) {
+      youtubePlayerRef.current.destroy();
+    }
+
+    try {
+      youtubePlayerRef.current = new window.YT.Player("youtube-player", {
+        height: "0",
+        width: "0",
+        videoId,
+        playerVars: {
+          autoplay: 1,
+          controls: 0,
+          disablekb: 1,
+          enablejsapi: 1,
+          origin: window.location.origin,
+          playsinline: 1,
+        },
+        events: {
+          onReady: (event: any) => {
+            setPlayerReadyRef(true);
+            event.target.setVolume(volume);
+            event.target.playVideo();
+            setIsLoading(false);
+          },
+          onStateChange: (event: any) => {
+            switch (event.data) {
+              case window.YT.PlayerState.PLAYING:
+                setIsPlaying(true);
+                setIsLoading(false);
+                break;
+              case window.YT.PlayerState.PAUSED:
+                setIsPlaying(false);
+                break;
+              case window.YT.PlayerState.ENDED:
+                onPlayNext();
+                break;
+              case window.YT.PlayerState.BUFFERING:
+                setIsLoading(true);
+                break;
+              case window.YT.PlayerState.CUED:
+                event.target.playVideo();
+                break;
+              default:
+                console.warn("Unknown player state:", event.data);
+                break;
+            }
+          },
+          onError: (event: any) => {
+            console.error("YouTube Player Error:", event);
+            setIsLoading(false);
+          },
+        },
+      });
+    } catch (error) {
+      console.error("Error initializing YouTube player:", error);
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (youtubePlayerRef.current?.getCurrentTime && !isLoading) {
+        try {
+          const currentTime = youtubePlayerRef.current.getCurrentTime() || 0;
+          const videoDuration = youtubePlayerRef.current.getDuration() || 0;
+          const bufferProgress =
+            youtubePlayerRef.current.getVideoLoadedFraction() * 100 || 0;
+
+          setProgressTime(currentTime);
+          setDuration(videoDuration);
+          setBufferedProgress(bufferProgress);
+        } catch (error) {
+          console.error("Error updating progress:", error);
+        }
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isLoading]);
 
   const handlePlay = () => {
-    if (!isPlaying) {
-      play();
-    } else {
-      pause();
+    if (!youtubePlayerRef.current) return;
+
+    try {
+      if (!isPlaying) {
+        youtubePlayerRef.current.playVideo();
+      } else {
+        youtubePlayerRef.current.pauseVideo();
+      }
+    } catch (error) {
+      console.error("Error handling play/pause:", error);
     }
   };
 
   const onPlayPrevious = () => {
-    if (player.songs.length === 0) {
-      return;
-    }
+    if (player.songs.length === 0) return;
 
-    const currentIndex = player.songs.findIndex(
-      (song) => song === player.activeSong
-    );
+    const currentIndex = player.songs.findIndex((s) => s === player.activeSong);
     const previousSong = player.songs[currentIndex - 1];
 
     if (!previousSong) {
@@ -90,13 +171,9 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
   };
 
   const onPlayNext = () => {
-    if (player.songs.length === 0) {
-      return;
-    }
+    if (player.songs.length === 0) return;
 
-    const currentIndex = player.songs.findIndex(
-      (id) => id === player.activeSong
-    );
+    const currentIndex = player.songs.findIndex((s) => s === player.activeSong);
     const nextSong = player.songs[currentIndex + 1];
 
     if (!nextSong) {
@@ -107,120 +184,114 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
   };
 
   const toggleMute = () => {
-    if (volume === 0) {
-      setVolume(previousVolume);
-    } else {
-      setPreviousVolume(volume);
-      setVolume(0);
+    if (!youtubePlayerRef.current) return;
+
+    try {
+      if (volume === 0) {
+        setVolume(previousVolume);
+        youtubePlayerRef.current.setVolume(previousVolume);
+      } else {
+        setPreviousVolume(volume);
+        setVolume(0);
+        youtubePlayerRef.current.setVolume(0);
+      }
+    } catch (error) {
+      console.error("Error toggling mute:", error);
     }
   };
 
   const handleProgressChange = (value: number) => {
-    setProgressTime(value);
-    if (sound) {
-      sound.seek(value);
+    if (!youtubePlayerRef.current) return;
+
+    try {
+      setProgressTime(value);
+      youtubePlayerRef.current.seekTo(value);
+    } catch (error) {
+      console.error("Error changing progress:", error);
     }
   };
 
-  return (
-    <div className="h-full overflow-hidden">
-      <div className="md:hidden flex w-full items-center gap-x-2 h-5">
-        <p className="w-[50px] whitespace-nowrap text-right text-sm text-neutral-400">
-          {Math.floor(progressTime / 60)}:
-          {Math.floor(progressTime % 60) < 10
-            ? `0${Math.floor(progressTime % 60)}`
-            : Math.floor(progressTime % 60)}
-        </p>
+  const handleVolumeChange = (value: number) => {
+    if (!youtubePlayerRef.current) return;
 
+    try {
+      setVolume(value);
+      youtubePlayerRef.current.setVolume(value);
+    } catch (error) {
+      console.error("Error changing volume:", error);
+    }
+  };
+
+  const formatTime = (timeInSeconds: number) => {
+    const minutes = Math.floor(timeInSeconds / 60);
+    const seconds = Math.floor(timeInSeconds % 60);
+
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+  };
+
+  return (
+    <div className="fixed bottom-0 left-0 right-0 bg-black/50 backdrop-blur-md border-t border-neutral-700/50">
+      <div className="relative w-full">
         <Slider
           value={progressTime}
-          max={sound?.duration() || 0}
+          max={duration}
           onChange={handleProgressChange}
+          bufferedProgress={bufferedProgress}
+          className="absolute -top-5"
         />
-
-        <p className="w-[50px] whitespace-nowrap text-sm text-neutral-400">
-          {Math.floor(sound?.duration() / 60 || 0)}:
-          {Math.floor(sound?.duration() % 60 || 0) < 10
-            ? `0${Math.floor(sound?.duration() % 60 || 0)}`
-            : Math.floor(sound?.duration() % 60 || 0)}
-        </p>
       </div>
-      <div className="grid h-full grid-cols-2 md:grid-cols-3">
-        <div className="flex w-full items-start md:w-[250px]">
-          <div className="flex w-full items-center gap-x-2">
-            <MediaItem song={song} />
-          </div>
-        </div>
 
-        <div className="col-auto flex w-full items-center justify-end md:hidden">
-          <div
-            onClick={handlePlay}
-            className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-white p-1"
-          >
-            <Icon size={28} className="text-black" />
-          </div>
-        </div>
+      <div className="flex items-center gap-x-2 px-4 pt-2">
+        <span className="text-xs text-neutral-400">
+          {formatTime(progressTime)}
+        </span>
+        <span className="text-xs text-neutral-400">/</span>
+        <span className="text-xs text-neutral-400">{formatTime(duration)}</span>
+      </div>
 
-        <div className="hidden md:flex w-full max-w-[722px] flex-col items-center justify-center">
-          <div className="w-full items-center justify-center gap-x-6 md:flex">
+      <div id="youtube-player" className="hidden"></div>
+
+      <div className="pb-2 px-4 flex items-center justify-between w-full gap-x-2 sm:gap-x-4 md:gap-x-6 overflow-hidden">
+        <div className="flex items-center min-w-[135px]">
+          <div className="flex items-center gap-x-4">
             <AiFillStepBackward
               onClick={onPlayPrevious}
-              size={25}
-              className="cursor-pointer text-neutral-400 transition hover:text-white"
+              size={24}
+              className="text-neutral-400 cursor-pointer hover:text-white transition"
             />
 
             <div
               onClick={handlePlay}
-              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-white p-1"
+              className="flex items-center justify-center h-8 w-8 rounded-full bg-white cursor-pointer hover:scale-105 transition"
             >
-              <Icon size={25} className="text-black" />
+              {isLoading ? (
+                <FiLoader className="h-5 w-5 text-black animate-spin" />
+              ) : (
+                <Icon size={24} className="text-black" />
+              )}
             </div>
+
             <AiFillStepForward
               onClick={onPlayNext}
-              size={25}
-              className="cursor-pointer text-neutral-400 transition hover:text-white"
+              size={24}
+              className="text-neutral-400 cursor-pointer hover:text-white transition"
             />
-          </div>
-
-          <div className="flex w-full items-center gap-x-2">
-            <p className="w-[50px] whitespace-nowrap text-right text-sm text-neutral-400">
-              {Math.floor(progressTime / 60)}:
-              {Math.floor(progressTime % 60) < 10
-                ? `0${Math.floor(progressTime % 60)}`
-                : Math.floor(progressTime % 60)}
-            </p>
-
-            <Slider
-              value={progressTime}
-              max={sound?.duration() || 0}
-              onChange={handleProgressChange}
-            />
-
-            <p className="w-[50px] whitespace-nowrap text-sm text-neutral-400">
-              {Math.floor(sound?.duration() / 60 || 0)}:
-              {Math.floor(sound?.duration() % 60 || 0) < 10
-                ? `0${Math.floor(sound?.duration() % 60 || 0)}`
-                : Math.floor(sound?.duration() % 60 || 0)}
-            </p>
           </div>
         </div>
 
-        <div className="hidden md:flex w-full justify-end pr-2">
-          <div className="md:flex w-[200px] items-center gap-x-2">
-            <VolumeIcon
-              onClick={toggleMute}
-              size={34}
-              className="w-[50px] cursor-pointer"
-            />
+        <div className="flex flex-col items-center gap-y-1 w-full max-w-[700px] overflow-hidden">
+          <MediaItem song={song} />
+        </div>
 
-            <p className="w-[85px] cursor-pointer text-center text-neutral-500">
-              {volume * 100} %
-            </p>
-            <Slider
-              value={volume}
-              max={1}
-              onChange={(value) => setVolume(value)}
-            />
+        <div className="hidden md:flex items-center min-w-[135px] gap-x-2 justify-end">
+          <VolumeIcon
+            onClick={toggleMute}
+            size={24}
+            className="cursor-pointer text-neutral-400 hover:text-white transition"
+          />
+
+          <div className="w-[100px]">
+            <Slider value={volume} max={100} onChange={handleVolumeChange} />
           </div>
         </div>
       </div>

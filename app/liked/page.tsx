@@ -15,8 +15,9 @@ const Liked = async () => {
           <div className="flex flex-col items-center gap-x-5 md:flex-row">
             <div className="relative h-32 w-32 lg:h-44 lg:w-44">
               <Image
-                fill
-                className="object-cover"
+                width={150}
+                height={150}
+                className="object-cover w-full h-full"
                 src={"/images/liked.png"}
                 alt="Image"
               />

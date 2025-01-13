@@ -25,8 +25,9 @@ const SongItem: React.FC<SongItemProps> = ({
     >
       <div className="relative aspect-square h-full w-full rounded-md overflow-hidden">
         <Image
-          className={twMerge("object-cover", imageClassName)}
-          fill
+          className={twMerge("object-cover h-full w-full", imageClassName)}
+          height={200}
+          width={200}
           src={imagePath || "/images/liked.png"}
           alt="Song Item Image"
         />

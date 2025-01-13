@@ -1,17 +1,17 @@
-"use client"
+"use client";
 
-import Image from "next/image"
-import PlayButton from "./PlayButton"
+import Image from "next/image";
+import PlayButton from "./PlayButton";
 
 interface SongsCardProps {
-  song: any
-  onClick: (song: any) => void
+  song: any;
+  onClick: (song: any) => void;
 }
 
 const SongsCard: React.FC<SongsCardProps> = ({ song, onClick }) => {
-  const artist = song?.artist.name || "Artist"
-  const name = song?.title_short || "Song name..."
-  const imgUrl = song?.album?.cover_medium || song?.album?.cover_big
+  const artist = song?.artist || "Artist";
+  const name = song?.title || "Song name...";
+  const imgUrl = song?.albumArt;
 
   return (
     <div
@@ -20,8 +20,9 @@ const SongsCard: React.FC<SongsCardProps> = ({ song, onClick }) => {
     >
       <div className="relative aspect-square h-full w-full overflow-hidden rounded-md">
         <Image
-          className="aspect-square rounded-lg object-cover"
-          fill
+          className="aspect-square rounded-lg object-cover w-full h-full"
+          height={200}
+          width={200}
           src={imgUrl || "/images/liked.png"}
           alt="Album Image"
         />
@@ -36,7 +37,7 @@ const SongsCard: React.FC<SongsCardProps> = ({ song, onClick }) => {
         <PlayButton />
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default SongsCard
+export default SongsCard;

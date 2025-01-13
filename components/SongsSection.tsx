@@ -13,7 +13,7 @@ const SongsSection: React.FC<SongsSectionProps> = ({
   const onPlay = useOnPlay(songsData);
 
   return (
-    <div className="mb-6">
+    <div className="mb-8">
       <div className="flex items-center justify-between pb-2">
         <h1 className="text-white text-2xl font-semibold">{sectionName}</h1>
       </div>

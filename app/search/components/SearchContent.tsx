@@ -1,10 +1,9 @@
 "use client";
 
-import LikeButton from "@/components/LikeButton";
 import MediaItem from "@/components/MediaItem";
 import useOnPlay from "@/hooks/useOnPlay";
-import { getMusic } from "@/libs/getMusic";
 import { useEffect, useState } from "react";
+import { getMusic, YTMusicAPI } from "@/libs/getMusic";
 
 interface SearchContentProps {
   query: string;
@@ -14,11 +13,15 @@ const SearchContent: React.FC<SearchContentProps> = ({ query }) => {
   const [songs, setSongs] = useState<any[]>();
   const onPlay = useOnPlay(songs!);
 
+  const ytMusic = new YTMusicAPI();
+
   useEffect(() => {
     if (query) {
       const fetchData = async () => {
-        const songsData = await getMusic(query);
-        setSongs(songsData.data);
+        const songsData = await ytMusic.searchTracks(query);
+        console.log(songsData);
+
+        setSongs(songsData);
       };
 
       fetchData();
