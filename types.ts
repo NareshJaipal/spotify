@@ -27,37 +27,3 @@ export interface Product {
   image?: string;
   meta_data?: Stripe.Metadata;
 }
-
-export interface Price {
-  id: string;
-  produc_id?: string;
-  active?: boolean;
-  description?: string;
-  unit_amount?: number;
-  currency?: string;
-  type: Stripe.Price.Type;
-  interval?: Stripe.Price.Recurring.Interval;
-  interval_count?: number;
-  trail_period_day?: number | null;
-  meta_data?: Stripe.Metadata;
-  products: Product;
-}
-
-export interface Subscription {
-  id: string;
-  user_id: string;
-  status?: Stripe.Subscription.Status;
-  meta_data?: Stripe.Metadata;
-  price_id?: string;
-  quantity?: number;
-  cancel_at_period_end?: boolean;
-  created: string;
-  current_period_start: string;
-  current_period_end: string;
-  ended_at?: string;
-  cancel_at?: string;
-  canceled_at?: string;
-  trail_start?: string;
-  trail_end?: string;
-  price?: Price;
-}
